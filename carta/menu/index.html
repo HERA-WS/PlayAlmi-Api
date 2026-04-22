@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu</title>
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ---- AUTH AREA ---- */
+        .menu-auth {
+            float: right;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 12px;
+            height: 100%;
+        }
+
+        .menu > ul > li.auth-item {
+            float: right;
+            background: transparent;
+            padding: 0;
+        }
+
+        /* Botones Iniciar sesión / Registro */
+        .btn-login,
+        .btn-register {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: .85rem;
+            font-weight: 600;
+            transition: background .2s, color .2s;
+            white-space: nowrap;
+        }
+
+        .btn-login {
+            color: #333;
+            border: 1px solid #bbb;
+            background: transparent;
+        }
+        .btn-login:hover {
+            background: #ddd;
+            color: #111;
+        }
+
+        .btn-register {
+            color: #fff;
+            background: #4a90d9;
+            border: 1px solid #4a90d9;
+        }
+        .btn-register:hover {
+            background: #357abd;
+            border-color: #357abd;
+        }
+
+        /* Avatar de perfil (visible cuando hay sesión) */
+        .profile-avatar {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .avatar-circle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #4a90d9;
+            border: 2px solid #4a90d9;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .avatar-circle:hover {
+            border-color: #357abd;
+            box-shadow: 0 0 0 3px rgba(74,144,217,.25);
+        }
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        /* Placeholder cuando no hay foto */
+        .avatar-circle .avatar-placeholder {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            line-height: 1;
+            user-select: none;
+        }
+
+        /* Dropdown del perfil */
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            width: 200px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0,0,0,.12);
+            z-index: 200;
+            overflow: hidden;
+        }
+        .profile-dropdown.open {
+            display: block;
+        }
+        .profile-dropdown .profile-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid #eee;
+            background: #f8f8f8;
+        }
+        .profile-dropdown .profile-header strong {
+            display: block;
+            font-size: .9rem;
+            color: #222;
+        }
+        .profile-dropdown .profile-header span {
+            font-size: .78rem;
+            color: #888;
+        }
+        .profile-dropdown ul {
+            list-style: none;
+            margin: 0;
+            padding: 6px 0;
+        }
+        .profile-dropdown ul li a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 16px;
+            font-size: .85rem;
+            color: #444;
+            text-decoration: none;
+            transition: background .15s;
+        }
+        .profile-dropdown ul li a:hover {
+            background: #f0f5ff;
+            color: #4a90d9;
+        }
+        .profile-dropdown ul li a .ion {
+            font-size: 1rem;
+            width: 16px;
+            text-align: center;
+        }
+        .profile-dropdown .dropdown-divider {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 4px 0;
+        }
+        .profile-dropdown ul li.logout a {
+            color: #e05252;
+        }
+        .profile-dropdown ul li.logout a:hover {
+            background: #fff0f0;
+        }
+
+        /* Ocultar/mostrar según estado */
+        .logged-out .auth-logged-in  { display: none !important; }
+        .logged-in  .auth-logged-out { display: none !important; }
+
+        /* Mobile: botones en lista */
+        @media only screen and (max-width: 959px) {
+            .menu-auth {
+                padding: 12px 16px;
+                float: none;
+                justify-content: flex-start;
+            }
+            .profile-dropdown {
+                right: auto;
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-container">
+        <div class="menu logged-out" id="mainMenu">
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a>
+                    <ul>
+                        <li><a href="#">School</a>
+                            <ul>
+                                <li><a href="#">Leadership</a></li>
+                                <li><a href="#">History</a></li>
+                                <li><a href="#">Locations</a></li>
+                                <li><a href="#">Careers</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#">Study</a>
+                            <ul>
+                                <li><a href="#">Undergraduate</a></li>
+                                <li><a href="#">Masters</a></li>
+                                <li><a href="#">International</a></li>
+                                <li><a href="#">Online</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#">Research</a>
+                            <ul>
+                                <li><a href="#">Undergraduate research</a></li>
+                                <li><a href="#">Masters research</a></li>
+                                <li><a href="#">Funding</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#">Something</a>
+                            <ul>
+                                <li><a href="#">Sub something</a></li>
+                                <li><a href="#">Sub something</a></li>
+                                <li><a href="#">Sub something</a></li>
+                                <li><a href="#">Sub something</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li><a href="#">News</a>
+                    <ul>
+                        <li><a href="#">Today</a></li>
+                        <li><a href="#">Calendar</a></li>
+                        <li><a href="#">Sport</a></li>
+                    </ul>
+                </li>
+                <li><a href="#">Contact</a>
+                    <ul>
+                        <li><a href="#">School</a>
+                            <ul>
+                                <li><a href="#">Leadership</a></li>
+                                <li><a href="#">History</a></li>
+                                <li><a href="#">Locations</a></li>
+                                <li><a href="#">Careers</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#">Study</a>
+                            <ul>
+                                <li><a href="#">Undergraduate</a></li>
+                                <li><a href="#">Masters</a></li>
+                                <li><a href="#">International</a></li>
+                                <li><a href="#">Online</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#">Empty sub</a></li>
+                    </ul>
+                </li>
+
+                <!-- AUTH: botones de sesión (lado derecho) -->
+                <li class="auth-item" style="float:right; padding: 0 8px; display:flex; align-items:center; gap:8px;">
+
+                    <!-- Sin sesión -->
+                    <span class="auth-logged-out" style="display:flex; align-items:center; gap:8px; padding: 8px 0;">
+                        <a href="#" class="btn-login" id="btnLogin">Iniciar sesión</a>
+                        <a href="#" class="btn-register">Registro</a>
+                    </span>
+
+                    <!-- Con sesión: avatar + dropdown -->
+                    <span class="auth-logged-in" style="display:flex; align-items:center; padding: 6px 0;">
+                        <div class="profile-avatar" id="profileAvatar">
+                            <div class="avatar-circle" id="avatarToggle">
+                                <!-- Si el usuario tiene foto: -->
+                                <!-- <img src="foto-de-perfil.jpg" alt="Avatar"> -->
+                                <!-- Sin foto, muestra inicial del nombre: -->
+                                <span class="avatar-placeholder" id="avatarInitial">U</span>
+                            </div>
+                            <div class="profile-dropdown" id="profileDropdown">
+                                <div class="profile-header">
+                                    <strong id="dropdownName">Usuario</strong>
+                                    <span id="dropdownEmail">usuario@email.com</span>
+                                </div>
+                                <ul>
+                                    <li><a href="#"><i class="ion ion-person" style="width:16px;text-align:center;"></i> Mi perfil</a></li>
+                                    <li><a href="#"><i class="ion ion-image" style="width:16px;text-align:center;"></i> Cambiar foto</a></li>
+                                    <li><a href="#"><i class="ion ion-settings" style="width:16px;text-align:center;"></i> Configuración</a></li>
+                                    <hr class="dropdown-divider">
+                                    <li class="logout"><a href="#" id="btnLogout"><i class="ion ion-log-out" style="width:16px;text-align:center;"></i> Cerrar sesión</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </span>
+
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            // ── Simulación login/logout (reemplaza con tu lógica real) ──
+            function setLoggedIn(name, email, photoUrl) {
+                $('#mainMenu').removeClass('logged-out').addClass('logged-in');
+                $('#dropdownName').text(name);
+                $('#dropdownEmail').text(email);
+
+                var initial = name.charAt(0).toUpperCase();
+                if (photoUrl) {
+                    $('#avatarToggle').html('<img src="' + photoUrl + '" alt="Avatar">');
+                } else {
+                    $('#avatarToggle').html('<span class="avatar-placeholder">' + initial + '</span>');
+                }
+            }
+
+            function setLoggedOut() {
+                $('#mainMenu').removeClass('logged-in').addClass('logged-out');
+                $('#profileDropdown').removeClass('open');
+            }
+
+            // Demo: pulsa "Iniciar sesión" para simular login
+            $('#btnLogin').on('click', function (e) {
+                e.preventDefault();
+                // Aquí pondrías tu modal/redirect real.
+                // Para demo, hacemos login directo:
+                setLoggedIn('Ekaitz', 'ekaitz@email.com', '');
+            });
+
+            $('#btnLogout').on('click', function (e) {
+                e.preventDefault();
+                setLoggedOut();
+            });
+
+            // Toggle dropdown de perfil
+            $('#avatarToggle').on('click', function (e) {
+                e.stopPropagation();
+                $('#profileDropdown').toggleClass('open');
+            });
+
+            // Cerrar dropdown al hacer click fuera
+            $(document).on('click', function () {
+                $('#profileDropdown').removeClass('open');
+            });
+            $('#profileDropdown').on('click', function (e) {
+                e.stopPropagation();
+            });
+
+        });
+    </script>
+</body>
+</html>
