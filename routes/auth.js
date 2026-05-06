@@ -1,10 +1,35 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
 require('dotenv').config();
 
-// Registro
+// ── Configuración Multer ──────────────────────────────────────────────────────
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = 'uploads/avatars';
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `avatar_${req.user.id}_${Date.now()}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB máx
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    cb(null, allowed.includes(file.mimetype));
+  }
+});
+
+// ── Registro ──────────────────────────────────────────────────────────────────
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -24,7 +49,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login
+// ── Login ─────────────────────────────────────────────────────────────────────
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -50,7 +75,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Perfil
+// ── Perfil ────────────────────────────────────────────────────────────────────
 router.get('/profile', require('../middleware/auth'), async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -60,9 +85,7 @@ router.get('/profile', require('../middleware/auth'), async (req, res) => {
   }
 });
 
-module.exports = router;
-
-// Editar perfil
+// ── Editar perfil ─────────────────────────────────────────────────────────────
 router.put('/profile', require('../middleware/auth'), async (req, res) => {
   try {
     const { username, email } = req.body;
@@ -73,18 +96,27 @@ router.put('/profile', require('../middleware/auth'), async (req, res) => {
   }
 });
 
-// Actualizar avatar
-router.put('/avatar', require('../middleware/auth'), async (req, res) => {
+// ── Actualizar avatar (archivo, no base64) ────────────────────────────────────
+router.put('/avatar', require('../middleware/auth'), upload.single('avatar'), async (req, res) => {
   try {
-    const { avatar } = req.body;
-    await User.findByIdAndUpdate(req.user.id, { avatar });
-    res.json({ message: 'Avatar actualizado' });
+    if (!req.file) return res.status(400).json({ message: 'No se subió ninguna imagen' });
+
+    // Borrar avatar anterior si existe (no el default '')
+    const currentUser = await User.findById(req.user.id);
+    if (currentUser.avatar && currentUser.avatar.startsWith('/uploads/')) {
+      const oldPath = path.join(__dirname, '..', currentUser.avatar);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    await User.findByIdAndUpdate(req.user.id, { avatar: avatarUrl });
+    res.json({ message: 'Avatar actualizado', avatar: avatarUrl });
   } catch (err) {
     res.status(500).json({ message: 'Error del servidor' });
   }
 });
 
-// Editar contraseña
+// ── Editar contraseña ─────────────────────────────────────────────────────────
 router.put('/password', require('../middleware/auth'), async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -101,7 +133,7 @@ router.put('/password', require('../middleware/auth'), async (req, res) => {
   }
 });
 
-// Eliminar cuenta
+// ── Eliminar cuenta ───────────────────────────────────────────────────────────
 router.delete('/profile', require('../middleware/auth'), async (req, res) => {
   try {
     await User.findByIdAndDelete(req.user.id);
@@ -111,7 +143,7 @@ router.delete('/profile', require('../middleware/auth'), async (req, res) => {
   }
 });
 
-// Forgot password
+// ── Forgot password ───────────────────────────────────────────────────────────
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -132,7 +164,7 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-// Reset password
+// ── Reset password ────────────────────────────────────────────────────────────
 router.post('/reset-password', async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -153,3 +185,5 @@ router.post('/reset-password', async (req, res) => {
     res.status(500).json({ message: 'Error del servidor' });
   }
 });
+
+module.exports = router;
